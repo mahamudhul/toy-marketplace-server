@@ -35,37 +35,41 @@ async function run() {
 
 
         app.post("/addtoys", async (req, res) => {
-            const data = req.data
+            const data = req.body
+            // console.log(data)
             const result = await toyCollection.insertOne(data)
             res.send(result)
         })
 
         app.get("/alltoys", async (req, res) => {
-            const id = req.params.id
-            const filter = { _id: new ObjectId(id) }
-            const data = await toyCollection.findOne(filter)
-            res.send(data)
-        })
-
-        app.patch("/toy/:id", async (req, res) => {
-            const id = req.params.id
-            const updateToyData = req.body
-            const filter = { _id: new ObjectId(id) }
-            const updateDoc = {
-                $set: {
-                    ...updateToyData
-                }
-            }
-            const result = await toyCollection.updateOne(filter, updateDoc)
+            const result = await toyCollection.find({}).toArray();
             res.send(result)
         })
 
-        app.delete("/toy/:id", async (req, res) =>{
-            const id = req.params.id
-            const filter = { _id: new ObjectId(id) }
-            const result = await toyCollection.deleteOne(filter)
-            res.send(result)
+        app.get("/myToys/:email", async(req, res) => {
+            const toys = await toyCollection.find({postedBy: req.params.email}).toArray();
+            res.send(toys);
         })
+
+        // app.patch("/toy/:id", async (req, res) => {
+        //     const id = req.params.id
+        //     const updateToyData = req.body
+        //     const filter = { _id: new ObjectId(id) }
+        //     const updateDoc = {
+        //         $set: {
+        //             ...updateToyData
+        //         }
+        //     }
+        //     const result = await toyCollection.updateOne(filter, updateDoc)
+        //     res.send(result)
+        // })
+
+        // app.delete("/toy/:id", async (req, res) =>{
+        //     const id = req.params.id
+        //     const filter = { _id: new ObjectId(id) }
+        //     const result = await toyCollection.deleteOne(filter)
+        //     res.send(result)
+        // })
 
 
 
@@ -77,7 +81,7 @@ async function run() {
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
         // Ensures that the client will close when you finish/error
-        await client.close();
+        // await client.close();
     }
 }
 run().catch(console.dir);
