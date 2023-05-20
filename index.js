@@ -54,44 +54,74 @@ async function run() {
 
 
         app.post("/addtoys", async (req, res) => {
-            const data = req.body
+            const data = req.body;
+            data.createdAt = new Date();
             // console.log(data)
             const result = await toyCollection.insertOne(data)
             res.send(result)
         })
 
+        let PAGESIZING = 20;
         app.get("/alltoys", async (req, res) => {
-            const result = await toyCollection.find({}).toArray();
+            const result = await toyCollection
+            .find({})
+            .sort({ createdAt: -1})
+            .limit(PAGESIZING )
+            .toArray();
             res.send(result)
         })
 
+        // by category
+        let PAGESIZING2 = 2;
+        app.get("/category/:text", async (req, res) => {
+            console.log(req.params.text)
+            const result = await toyCollection
+            .find({category: req.params.text})
+            .limit(PAGESIZING2 )
+            .toArray();
+            console.log(result)
+            res.send(result)
+            // const result = await toyCollection.find({}).toArray();
+            // res.send(result)
+        })
+
         app.get("/myToys/:email", async(req, res) => {
-            console.log(req.params.sellerEmail)
+            // console.log(req.params.sellerEmail)
             const toys = await toyCollection
             .find({postedBy: req.params.sellerEmail})
             .toArray();
             res.send(toys);
         })
 
-        // app.patch("/toy/:id", async (req, res) => {
-        //     const id = req.params.id
-        //     const updateToyData = req.body
-        //     const filter = { _id: new ObjectId(id) }
-        //     const updateDoc = {
-        //         $set: {
-        //             ...updateToyData
-        //         }
-        //     }
-        //     const result = await toyCollection.updateOne(filter, updateDoc)
-        //     res.send(result)
-        // })
+        app.get("/alltoys/:id", async (req, res) => {
+            const id = req.params.id
+            const filter = { _id: new ObjectId(id) }
+            const data = await toyCollection.findOne(filter)
+            res.send(data)
+        })
 
-        // app.delete("/toy/:id", async (req, res) =>{
-        //     const id = req.params.id
-        //     const filter = { _id: new ObjectId(id) }
-        //     const result = await toyCollection.deleteOne(filter)
-        //     res.send(result)
-        // })
+
+
+        app.patch("/toy/:id", async (req, res) => {
+            const id = req.params.id
+            const updateToyData = req.body
+            const filter = { _id: new ObjectId(id) }
+            const updateDoc = {
+                $set: {
+                    ...updateToyData
+                }
+            }
+            const result = await toyCollection.updateOne(filter, updateDoc)
+            res.send(result)
+        })
+
+        app.delete("/toy/:id", async (req, res) =>{
+            const id = req.params.id
+            console.log(id)
+            const filter = { _id: new ObjectId(id) }
+            const result = await toyCollection.deleteOne(filter)
+            res.send(result)
+        })
 
 
 
