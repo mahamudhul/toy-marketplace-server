@@ -33,6 +33,25 @@ async function run() {
 
         const toyCollection = client.db("toyMarket").collection("toys")
 
+        // indexing
+        const indexKeys = {name: 1, sellerName: 1};
+        const indexOptions ={ name: "nameSellerName"};
+        const result = await toyCollection.createIndex(indexKeys, indexOptions)
+        console.log(result)
+
+        app.get("/toysSearch/:text", async(req, res) => {
+            const searchText = req.params.text;
+            const result= await toyCollection.find({
+                $or: [
+                    { name: { $regex: searchText, $options: "i"}},
+                    { sellerName: { $regex: searchText, $options: "i"}},
+                ],
+            })
+            .toArray();
+
+            res.send(result);
+        })
+
 
         app.post("/addtoys", async (req, res) => {
             const data = req.body
@@ -47,7 +66,10 @@ async function run() {
         })
 
         app.get("/myToys/:email", async(req, res) => {
-            const toys = await toyCollection.find({postedBy: req.params.email}).toArray();
+            console.log(req.params.sellerEmail)
+            const toys = await toyCollection
+            .find({postedBy: req.params.sellerEmail})
+            .toArray();
             res.send(toys);
         })
 
